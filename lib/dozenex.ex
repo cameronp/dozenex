@@ -1,5 +1,36 @@
 defmodule Dozenex do  
+  defmacro __using__(_options) do
+    quote do
+      import unquote(__MODULE__)
+      import Kernel, except: [+: 2, -: 2, *: 2]
+    end
+  end
 
+  def a + b when is_map(a) do
+    Dozenex.Math.add(a,b)  
+  end
+
+  def a + b do
+    Kernel.+(a,b)
+  end
+
+  def a - b when is_map(a) do
+    Dozenex.Math.subtract(a,b)
+  end
+
+  def a - b do
+    Kernel.-(a,b)
+  end
+
+  def a * b when is_map(a) do
+    Dozenex.Math.multiply(a,b)
+  end
+
+  def a * b do
+    Kernel.*(a,b)
+  end
+
+ 
 
   defprotocol Decimal do
     def to_decimal(dozenal)
