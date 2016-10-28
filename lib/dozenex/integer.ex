@@ -1,79 +1,81 @@
 defmodule Dozenex.Integer do
   defstruct digits: []
+  alias Dozenex.{Decimal, Dozenal}
+  alias Dozenex.Integer, as: I
 
   @doc """
     Constructs a Dozenex.Integer from a string representation of that integer.  This is primarily to be used
     by the ~d sigil defined in `Dozenex`
   """
-  def construct(s) when is_binary(s), do: s |> to_char_list |> _convert_from_char_list |> _construct 
+  def construct(s) when is_binary(s), do: s |> to_char_list |> _convert_from_char_list |> _construct
 
-  defimpl String.Chars, for: Dozenex.Integer do
-    def to_string(%Dozenex.Integer{digits: digits}),
-      do: digits |> Dozenex.Integer._convert_to_char_list |> Kernel.to_string
+  defimpl String.Chars, for: I do
+    def to_string(%I{digits: digits}),
+      do: digits |> I._convert_to_char_list |> Kernel.to_string
   end
-  
-  defimpl Inspect, for: Dozenex.Integer do
+
+  defimpl Inspect, for: I do
     def inspect(di, _opts), do: "~d(#{di})"
   end
 
-  defimpl Dozenex.Decimal, for: Dozenex.Integer do
+  defimpl Decimal, for: I do
     @doc """
       Converts a `Dozenex.Integer` to a decimal `Integer`
     """
-    def to_decimal(%Dozenex.Integer{ digits: digits}), do: digits |> Enum.reverse |> to_decimal
+    def to_decimal(%I{ digits: digits}), do: digits |> Enum.reverse |> to_decimal
     def to_decimal([]), do: 0
     def to_decimal([h | t]), do: h + 12 * to_decimal(t)
   end
 
-  defimpl Dozenex.Math, for: Dozenex.Integer do
+  defimpl Dozenex.Math, for: I do
     def add(a, b) do
-      da = Dozenex.Decimal.to_decimal(a)
-      db = Dozenex.Decimal.to_decimal(b)
-      Dozenex.Dozenal.from_decimal(da + db)
+      da = Decimal.to_decimal(a)
+      db = Decimal.to_decimal(b)
+      Dozenal.from_decimal(da + db)
     end
-    
+
     def subtract(a, b) do
-      da = Dozenex.Decimal.to_decimal(a)
-      db = Dozenex.Decimal.to_decimal(b)
-      Dozenex.Dozenal.from_decimal(da - db)
+      da = Decimal.to_decimal(a)
+      db = Decimal.to_decimal(b)
+      Dozenal.from_decimal(da - db)
     end
 
     def multiply(a, b) do
-      da = Dozenex.Decimal.to_decimal(a)
-      db = Dozenex.Decimal.to_decimal(b)
-      Dozenex.Dozenal.from_decimal(da * db)
+      da = Decimal.to_decimal(a)
+      db = Decimal.to_decimal(b)
+      Dozenal.from_decimal(da * db)
     end
 
     def div(a, b) do
-      da = Dozenex.Decimal.to_decimal(a)
-      db = Dozenex.Decimal.to_decimal(b)
-      Kernel.div(da, db) |> Dozenex.Dozenal.from_decimal
+      da = Decimal.to_decimal(a)
+      db = Decimal.to_decimal(b)
+      Kernel.div(da, db) |> Dozenal.from_decimal
     end
 
     def rem(a, b) do
-      da = Dozenex.Decimal.to_decimal(a)
-      db = Dozenex.Decimal.to_decimal(b)
-      Kernel.rem(da, db) |> Dozenex.Dozenal.from_decimal
+      da = Decimal.to_decimal(a)
+      db = Decimal.to_decimal(b)
+      Kernel.rem(da, db) |> Dozenal.from_decimal
     end
   end
 
-  defimpl Dozenex.Dozenal, for: Integer do
+  defimpl Dozenal, for: Integer do
      @doc """
       Converts a decimal `Integer` to a `Dozenex.Integer`
     """
-    def from_decimal(dec) do 
+    def from_decimal(dec) do
       digits = _from_decimal(dec)  |> Enum.reverse
-      %Dozenex.Integer{digits: digits}
+      %I{digits: digits}
     end
 
     def _from_decimal(dec) when dec < 12, do: [dec]
     def _from_decimal(dec), do: [rem(dec, 12) | div(dec,12) |> _from_decimal]
   end
 
-  def _construct(l) when is_list(l), do: %Dozenex.Integer{digits: l}
+  def _construct(l) when is_list(l), do: %I{digits: l}
 
   def _convert_from_char_list([]), do: []
-  def _convert_from_char_list([h | t]), do: [char_to_digit(h) | _convert_from_char_list(t)] 
+  def _convert_from_char_list([h | t]), do: [char_to_digit(h) | _convert_from_char_list(t)]
 
   def _convert_to_char_list([]), do: []
   def _convert_to_char_list([h | t]), do: [ digit_to_char(h) | _convert_to_char_list(t) ]
